@@ -2,8 +2,15 @@ package tests.api;
 
 import data.RegistrationData;
 import data.api.AuthorizationApi;
-import data.models.*;
-import io.qameta.allure.*;
+import data.models.CredentialsDto;
+import data.models.TokenDto;
+import data.models.UserDto;
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Owner;
+import io.qameta.allure.Severity;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -25,9 +32,8 @@ import static org.hamcrest.CoreMatchers.is;
 @Feature(value = "API")
 @Story(value = "Account API")
 @Tag("api")
-class AccountTests  extends TestBaseApi{
+class AccountTests extends TestBaseApi {
     private final AuthorizationApi authorizationApi = new AuthorizationApi();
-    private final Credentials credentials = new Credentials();
     private final RegistrationData data = new RegistrationData();
 
     @Severity(CRITICAL)
@@ -35,14 +41,12 @@ class AccountTests  extends TestBaseApi{
     @Description("post /Account/v1/User")
     @Test
     void createNewUserTest() {
-        credentials.setUserName(data.firstName + data.lastName);
-        credentials.setPassword(PASSWORD);
+        CredentialsDto credentials = new CredentialsDto(data.firstName + data.lastName, PASSWORD);
+        UserDto user = authorizationApi.createUser(credentials);
 
-        UserNew user = authorizationApi.createUser(credentials);
-
-        assertThat(user.getUserID()).isNotEmpty();
-        assertThat(user.getUsername()).isEqualTo(credentials.getUserName());
-        assertThat(user.getBooks()).isEmpty();
+        assertThat(user.userId()).isNotEmpty();
+        assertThat(user.username()).isEqualTo(credentials.userName());
+        assertThat(user.books()).isEmpty();
     }
 
     @Severity(NORMAL)
@@ -50,8 +54,7 @@ class AccountTests  extends TestBaseApi{
     @Description("post /Account/v1/User")
     @Test
     void reCreateOldUserTest() {
-        credentials.setUserName(USERNAME);
-        credentials.setPassword(PASSWORD);
+        CredentialsDto credentials = new CredentialsDto(USERNAME, PASSWORD);
 
         given(jsonRequestSpec)
                 .body(credentials)
@@ -69,16 +72,14 @@ class AccountTests  extends TestBaseApi{
     @Description("post /Account/v1/GenerateToken")
     @Test
     void getTokenTest() {
-        credentials.setUserName(data.firstName + data.lastName);
-        credentials.setPassword(PASSWORD);
-
+        CredentialsDto credentials = new CredentialsDto(data.firstName + data.lastName, PASSWORD);
         authorizationApi.createUser(credentials);
-        Token token = authorizationApi.getToken(credentials);
+        TokenDto token = authorizationApi.getToken(credentials);
 
-        assertThat(token.getToken()).isNotEmpty();
-        assertThat(token.getExpires()).isNotEmpty();
-        assertThat(token.getStatus()).isEqualTo("Success");
-        assertThat(token.getResult()).isEqualTo("User authorized successfully.");
+        assertThat(token.token()).isNotEmpty();
+        assertThat(token.expires()).isNotEmpty();
+        assertThat(token.status()).isEqualTo("Success");
+        assertThat(token.result()).isEqualTo("User authorized successfully.");
     }
 
 
@@ -87,11 +88,9 @@ class AccountTests  extends TestBaseApi{
     @Description("delete /Account/v1/User/{UUID}")
     @Test
     void deleteUserTest() {
-        credentials.setUserName(data.firstName + data.lastName);
-        credentials.setPassword(PASSWORD);
-
-        UserNew user = authorizationApi.createUser(credentials);
-        Token token = authorizationApi.getToken(credentials);
+        CredentialsDto credentials = new CredentialsDto(data.firstName + data.lastName, PASSWORD);
+        UserDto user = authorizationApi.createUser(credentials);
+        TokenDto token = authorizationApi.getToken(credentials);
 
         authorizationApi.deleteUser(user, token);
 
@@ -111,14 +110,12 @@ class AccountTests  extends TestBaseApi{
     @Description("delete /Account/v1/User/{UUID}")
     @Test
     void deleteUnauthorizedUserTest() {
-        credentials.setUserName(data.firstName + data.lastName);
-        credentials.setPassword(PASSWORD);
-
-        UserNew user = authorizationApi.createUser(credentials);
+        CredentialsDto credentials = new CredentialsDto(data.firstName + data.lastName, PASSWORD);
+        UserDto user = authorizationApi.createUser(credentials);
 
         given(requestSpec)
                 .when()
-                .delete("/Account/v1/User/" + user.getUserID())
+                .delete("/Account/v1/User/" + user.userId())
                 .then()
                 .spec(responseSpec)
                 .statusCode(401)

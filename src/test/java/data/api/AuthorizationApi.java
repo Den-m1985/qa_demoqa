@@ -1,9 +1,9 @@
 package data.api;
 
-import data.models.Cookie;
-import data.models.Credentials;
-import data.models.Token;
-import data.models.UserNew;
+import data.models.CookieDto;
+import data.models.CredentialsDto;
+import data.models.TokenDto;
+import data.models.UserDto;
 
 import static data.specs.RequestSpecs.jsonRequestSpec;
 import static data.specs.RequestSpecs.requestSpec;
@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.emptyOrNullString;
 
 public class AuthorizationApi {
 
-    public UserNew createUser(Credentials credentials) {
+    public UserDto createUser(CredentialsDto credentials) {
         return given(jsonRequestSpec)
                 .body(credentials)
                 .when()
@@ -22,10 +22,10 @@ public class AuthorizationApi {
                 .then()
                 .spec(responseSpec)
                 .statusCode(201)
-                .extract().as(UserNew.class);
+                .extract().as(UserDto.class);
     }
 
-    public Token getToken(Credentials credentials) {
+    public TokenDto getToken(CredentialsDto credentials) {
         return given(jsonRequestSpec)
                 .body(credentials)
                 .when()
@@ -33,10 +33,10 @@ public class AuthorizationApi {
                 .then()
                 .spec(responseSpec)
                 .statusCode(200)
-                .extract().as(Token.class);
+                .extract().as(TokenDto.class);
     }
 
-    public Cookie login(Credentials credentials) {
+    public CookieDto login(CredentialsDto credentials) {
         return given(jsonRequestSpec)
                 .body(credentials)
                 .when()
@@ -44,14 +44,14 @@ public class AuthorizationApi {
                 .then()
                 .spec(responseSpec)
                 .statusCode(200)
-                .extract().as(Cookie.class);
+                .extract().as(CookieDto.class);
     }
 
-    public void deleteUser(UserNew user, Token token) {
+    public void deleteUser(UserDto user, TokenDto token) {
         given(requestSpec)
-                .header("Authorization", "Bearer " + token.getToken())
+                .header("Authorization", "Bearer " + token.token())
                 .when()
-                .delete("/Account/v1/User/" + user.getUserID())
+                .delete("/Account/v1/User/" + user.userId())
                 .then()
                 .spec(responseSpec)
                 .statusCode(204)

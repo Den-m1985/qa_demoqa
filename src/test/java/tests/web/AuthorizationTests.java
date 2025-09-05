@@ -2,8 +2,8 @@ package tests.web;
 
 import data.RegistrationData;
 import data.api.AuthorizationApi;
-import data.models.Cookie;
-import data.models.Credentials;
+import data.models.CookieDto;
+import data.models.CredentialsDto;
 import data.pages.ProfilePage;
 import io.qameta.allure.*;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +25,6 @@ import static io.qameta.allure.SeverityLevel.BLOCKER;
 @Tag("ui")
 class AuthorizationTests extends TestBase{
     private final AuthorizationApi authorizationApi = new AuthorizationApi();
-    private final Credentials credentials = new Credentials();
     private final ProfilePage profilePage = new ProfilePage();
     private final RegistrationData data = new RegistrationData();
 
@@ -33,12 +32,10 @@ class AuthorizationTests extends TestBase{
     @DisplayName("User should be able to authorize")
     @Test
     void authorizationTest() {
-        credentials.setUserName(data.firstName + data.lastName);
-        credentials.setPassword(PASSWORD);
-
+        CredentialsDto credentials = new CredentialsDto(data.firstName + data.lastName, PASSWORD);
         authorizationApi.createUser(credentials);
         authorizationApi.getToken(credentials);
-        Cookie cookie = authorizationApi.login(credentials);
+        CookieDto cookie = authorizationApi.login(credentials);
 
         step("Clear old cookies if exist", () -> {
             open("/favicon.png");
@@ -49,10 +46,10 @@ class AuthorizationTests extends TestBase{
         step("Check user is not logged in", profilePage::checkLoginSuggestionIsVisible);
 
         step("Set cookies and refresh page", () -> {
-            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("token", cookie.getToken()));
-            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("expires", cookie.getExpires()));
-            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("userID", cookie.getUserId()));
-            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("userName", cookie.getUsername()));
+            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("token", cookie.token()));
+            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("expires", cookie.expires()));
+            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("userID", cookie.userId()));
+            getWebDriver().manage().addCookie(new org.openqa.selenium.Cookie("userName", cookie.username()));
             refresh();
         });
 
